@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BagVerse | Login Slim</title>
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: { extend: { colors: { indigo: { 600: '#4f46e5' } } } }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .toast-in { animation: slideIn 0.5s ease out forwards; }
+        @keyframes slideIn {
+            from { transform: translate(-50%, 20px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300 relative">
+    
+    <div class="bg-white dark:bg-gray-800 p-6 md:p-10 rounded-[24px] md:rounded-[40px] shadow-xl w-full max-w-[360px] md:max-w-md border dark:border-gray-700 z-10">
+        <h1 class="text-2xl md:text-3xl font-black text-indigo-600 text-center mb-6 md:mb-8 italic tracking-tighter cursor-pointer" onclick="location.href='index.html'">BAGVERSE.</h1>
+        
+        <form id="login-form" class="space-y-3 md:space-y-4">
+            <div>
+                <label class="text-[9px] md:text-[10px] font-black opacity-40 ml-2 uppercase tracking-widest dark:text-white">Email</label>
+                <input type="email" id="email" required placeholder="name@mail.com" 
+                    class="w-full p-3 md:p-4 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-700 dark:text-white border-none outline-none focus:ring-2 focus:ring-indigo-600 transition text-sm">
+            </div>
+            <div>
+                <label class="text-[9px] md:text-[10px] font-black opacity-40 ml-2 uppercase tracking-widest dark:text-white">Password</label>
+                <input type="password" id="password" required placeholder="••••••••" 
+                    class="w-full p-3 md:p-4 rounded-xl md:rounded-2xl bg-gray-50 dark:bg-gray-700 dark:text-white border-none outline-none focus:ring-2 focus:ring-indigo-600 transition text-sm">
+            </div>
+            
+            <div class="pt-2">
+                <button type="submit" id="btn-text" class="w-full bg-indigo-600 text-white py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black uppercase tracking-widest hover:bg-indigo-700 transition active:scale-95 shadow-lg shadow-indigo-500/20 text-xs md:text-sm">
+                    Masuk
+                </button>
+            </div>
+        </form>
+
+        <div class="mt-5 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
+            <p class="text-[9px] text-indigo-600 dark:text-indigo-400 font-bold leading-tight text-center">
+                💡 ADMIN LOGIN:<br>
+                admin@mail.com / admin123
+            </p>
+        </div>
+
+        <p class="text-center mt-5 text-[10px] md:text-xs font-bold opacity-50 dark:text-white">
+            Belum punya akun? <a href="register.html" class="text-indigo-600 underline">Daftar</a>
+        </p>
+    </div>
+
+    <div id="custom-toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] hidden">
+        <div class="bg-black text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-xs flex items-center gap-3">
+            <span id="toast-icon">🎉</span>
+            <span id="toast-msg">Login Berhasil!</span>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const toast = document.getElementById('custom-toast');
+        const toastMsg = document.getElementById('toast-msg');
+
+        function showNotif(msg, isError = false) {
+            toastMsg.innerText = msg;
+            document.getElementById('toast-icon').innerText = isError ? '⚠️' : '🎉';
+            toast.classList.remove('hidden');
+            toast.classList.add('toast-in');
+            if(isError) toast.firstElementChild.classList.replace('bg-black', 'bg-red-600');
+            else toast.firstElementChild.classList.replace('bg-red-600', 'bg-black');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 2500);
+        }
+
+        loginForm.onsubmit = function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const users = JSON.parse(localStorage.getItem('users_db')) || [];
+            const btnText = document.getElementById('btn-text');
+
+            // Proses Login
+            let targetUrl = '';
+            let success = false;
+
+            if (email === "admin@mail.com" && password === "admin123") {
+                localStorage.setItem('session', JSON.stringify({ name: "Admin", email, role: "admin" }));
+                targetUrl = 'admin.html';
+                success = true;
+            } else {
+                const userMatch = users.find(u => u.email === email && u.password === password);
+                if (userMatch) {
+                    localStorage.setItem('session', JSON.stringify(userMatch));
+                    targetUrl = 'index.html';
+                    success = true;
+                }
+            }
+
+            if (success) {
+                btnText.innerText = "MOHON TUNGGU...";
+                showNotif("Login Berhasil! Mengalihkan...");
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 1500);
+            } else {
+                showNotif("Email atau Password salah!", true);
+            }
+        };
+    </script>
+</body>
+</html>

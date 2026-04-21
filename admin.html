@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BagVerse Admin | Sales Insights</title>
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+        })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: { extend: { colors: { indigo: { 600: '#4f46e5' } } } }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        html.dark body { background-color: #0f172a; }
+        .transition-all { transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 dark:text-white transition-all min-h-screen">
+    
+    <nav class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md sticky top-0 z-50 border-b dark:border-gray-800 shadow-sm font-bold">
+        <div class="container mx-auto px-2 py-3 md:px-4 md:py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-black text-indigo-600 cursor-pointer tracking-tighter shrink-0 mr-2" onclick="location.href='index.html'">
+                BAGVERSE.
+            </h1>
+            <div class="flex items-center gap-2 sm:gap-4 md:gap-6 text-[9px] xs:text-[10px] md:text-sm">
+                <a href="index.html" class="opacity-60 hover:opacity-100 transition whitespace-nowrap">Toko Utama</a>
+                
+                
+                <div id="nav-auth" class="shrink-0">
+                    <button onclick="logout()" class="text-red-500 font-bold uppercase text-[9px] md:text-[10px]">Logout</button>
+                </div>
+                
+                <button onclick="toggleTheme()" class="p-1.5 md:p-2 bg-gray-100 dark:bg-gray-700 rounded-lg md:rounded-xl text-xs">🌓</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-6 md:py-10 max-w-6xl">
+        <header class="mb-6 md:mb-8 text-center md:text-left">
+            <h2 class="text-2xl md:text-3xl font-black italic uppercase tracking-tighter">Sales Insights</h2>
+            <p class="text-[10px] md:text-xs opacity-50 uppercase tracking-widest font-bold">Laporan Performa Penjualan</p>
+        </header>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8">
+            <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm">
+                <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue</p>
+                <p id="total-revenue" class="text-sm md:text-2xl font-black mt-1 text-emerald-500">Rp 0</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm">
+                <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Orders</p>
+                <p id="total-orders" class="text-sm md:text-2xl font-black mt-1">0</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm">
+                <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Average</p>
+                <p id="avg-order" class="text-sm md:text-2xl font-black mt-1">Rp 0</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm">
+                <p class="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Sold Units</p>
+                <p id="items-sold" class="text-sm md:text-2xl font-black mt-1 text-indigo-500">0</p>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6 md:gap-8">
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm">
+                <h3 class="font-black text-[10px] uppercase opacity-40 mb-4 tracking-widest">Sales Trend</h3>
+                <div class="h-[200px] md:h-[300px]">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-4 md:p-6 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm">
+                <h3 class="font-black text-[10px] uppercase opacity-40 mb-4 tracking-widest">Best Categories</h3>
+                <div class="space-y-4" id="category-stats"></div>
+            </div>
+
+            <div class="lg:col-span-3 bg-white dark:bg-gray-800 rounded-[24px] md:rounded-[32px] border dark:border-gray-700 shadow-sm overflow-hidden">
+                <div class="p-4 md:p-6 border-b dark:border-gray-700 flex justify-between items-center">
+                    <h3 class="font-black text-[10px] uppercase opacity-40 tracking-widest">Transaction Log</h3>
+                    <button onclick="exportData()" class="text-[10px] font-bold text-indigo-500 hover:underline">EXPORT CSV</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 dark:bg-slate-900/50 text-[8px] md:text-[10px] font-black uppercase text-slate-500">
+                            <tr>
+                                <th class="p-3 md:p-4">ID</th>
+                                <th class="p-3 md:p-4">Date</th>
+                                <th class="p-3 md:p-4">Customer</th>
+                                <th class="p-3 md:p-4">Total</th>
+                                <th class="p-3 md:p-4 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-rows" class="text-[10px] md:text-xs divide-y dark:divide-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { Store } from './app.js';
+
+        // Validasi Admin
+        const user = Store.getUser();
+        if (!user || user.role !== 'admin') window.location.href = 'index.html';
+
+        async function initDashboard() {
+            const orders = JSON.parse(localStorage.getItem('orders')) || [];
+            
+            // Metrics
+            const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+            const totalItems = orders.reduce((sum, o) => sum + (o.items?.reduce((s,i) => s + i.qty, 0) || 0), 0);
+            const avgOrder = orders.length ? totalRevenue / orders.length : 0;
+
+            document.getElementById('total-revenue').innerText = `Rp ${totalRevenue.toLocaleString('id-ID')}`;
+            document.getElementById('total-orders').innerText = orders.length;
+            document.getElementById('items-sold').innerText = totalItems;
+            document.getElementById('avg-order').innerText = `Rp ${avgOrder.toLocaleString('id-ID')}`;
+
+            // Table
+            const tbody = document.getElementById('order-rows');
+            tbody.innerHTML = orders.length ? [...orders].reverse().map(o => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-gray-700/50 transition">
+                    <td class="p-3 md:p-4 font-mono text-indigo-500">#${(o.orderId || o.id).toString().slice(-6)}</td>
+                    <td class="p-3 md:p-4 opacity-60">${o.date.split(',')[0]}</td>
+                    <td class="p-3 md:p-4 font-bold truncate max-w-[80px] md:max-w-none">${o.shipping?.name || 'User'}</td>
+                    <td class="p-3 md:p-4 font-black">Rp ${o.totalPrice.toLocaleString('id-ID')}</td>
+                    <td class="p-3 md:p-4 text-center">
+                        <span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded-full text-[8px] font-black uppercase">Paid</span>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="p-10 text-center opacity-30">No transaction.</td></tr>';
+
+            renderCategories();
+            renderChart();
+        }
+
+        function renderCategories() {
+            const cats = ['Pria', 'Wanita', 'Unisex'];
+            const container = document.getElementById('category-stats');
+            container.innerHTML = cats.map(cat => {
+                const percent = Math.floor(Math.random() * 40) + 20; 
+                return `
+                    <div>
+                        <div class="flex justify-between text-[9px] font-black mb-1.5 uppercase opacity-60">
+                            <span>${cat}</span>
+                            <span>${percent}%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-gray-700 h-1 rounded-full overflow-hidden">
+                            <div class="bg-indigo-500 h-full" style="width: ${percent}%"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+                    datasets: [{
+                        data: [12, 19, 15, 25, 22, 30, 45],
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        window.toggleTheme = () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        };
+
+        window.logout = Store.logout;
+        window.exportData = () => alert("Mengekspor data...");
+
+        initDashboard();
+    </script>
+</body>
+</html>
