@@ -177,9 +177,9 @@
             const user = Store.getUser();
             const navAuth = document.getElementById('nav-auth');
             if (user) {
+                // Sekarang hanya Logout, tombol ADM dihapus karena Admin langsung login ke Dashboard
                 navAuth.innerHTML = `
-                    <div class="flex items-center gap-1.5 md:gap-3">
-                        ${user.role === 'admin' ? `<a href="admin.html" class="bg-black text-white px-1.5 py-0.5 rounded text-[8px] font-black tracking-tighter">ADM</a>` : ''}
+                    <div class="flex items-center">
                         <button onclick="logout()" class="text-red-500 font-bold uppercase text-[9px] md:text-[10px]">Logout</button>
                     </div>`;
             } else {
@@ -201,14 +201,13 @@
 
     <div id="footer-placeholder"></div>
 
-<script>
-    // Fungsi panggil file footer eksternal
-    fetch('footer.html')
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('footer-placeholder').innerHTML = data;
-        });
-</script>
+    <script>
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            });
+    </script>
 
 </body>
 </html>

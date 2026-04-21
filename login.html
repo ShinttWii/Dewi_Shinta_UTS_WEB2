@@ -19,7 +19,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .toast-in { animation: slideIn 0.5s ease out forwards; }
+        .toast-in { animation: slideIn 0.5s ease-out forwards; }
         @keyframes slideIn {
             from { transform: translate(-50%, 20px); opacity: 0; }
             to { transform: translate(-50%, 0); opacity: 1; }
@@ -94,13 +94,13 @@
             const users = JSON.parse(localStorage.getItem('users_db')) || [];
             const btnText = document.getElementById('btn-text');
 
-            // Proses Login
             let targetUrl = '';
             let success = false;
 
+            // Update: Admin langsung diarahkan ke admin-sales.html
             if (email === "admin@mail.com" && password === "admin123") {
                 localStorage.setItem('session', JSON.stringify({ name: "Admin", email, role: "admin" }));
-                targetUrl = 'admin.html';
+                targetUrl = 'admin.html'; // Direct to Sales Insight
                 success = true;
             } else {
                 const userMatch = users.find(u => u.email === email && u.password === password);
